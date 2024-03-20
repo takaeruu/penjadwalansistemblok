@@ -80,10 +80,15 @@ class M_office extends Model
                   ->getResult();     
 
   }
-  public function getById($id)
-        {
-            return $this->where('id_user', $id)->first();
-        }
+ 
+   public function getById($id)
+{
+    return $this->db->table('user')
+                    ->where('id_user', $id)
+                    ->get()
+                    ->getRow();
+}
+
   public function getWhereWithJoin1($tabel1, $tabel2, $tabel3, $tabel4, $onCondition1, $onCondition2, $onCondition3, $where){
    return $this->db->table($tabel1)
        ->join($tabel2, $onCondition1)
