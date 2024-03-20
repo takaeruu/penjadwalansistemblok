@@ -20,7 +20,7 @@
                 </a>
                 <h1 class="h6 mb-3">Sign in</h1>
                 <div class="form-group">
-                    <input type="text" id="inputEmail" name="username" class="form-control form-control-lg" placeholder="Email address" required="" autofocus="">
+                    <input type="text" id="inputEmail" name="username" class="form-control form-control-lg" placeholder="Username" required="" autofocus="">
                 </div>
                 <div class="form-group">
                     <input type="password" name="password" id="inputPassword" class="form-control form-control-lg" placeholder="Password" required="">
