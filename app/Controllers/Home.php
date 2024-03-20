@@ -81,17 +81,16 @@ class Home extends BaseController
         $file->move(ROOTPATH . 'public/img', $newFileName);
 
         if ($userData->foto && file_exists(ROOTPATH . 'public/img/' . $userData->foto)) {
-            unlink(ROOTPATH . 'public/img/' . $userData->foto);
-        }
+    unlink(ROOTPATH . 'public/img/' . $userData->foto);
+}
         $userId = ['id_user' => session()->get('id')];
         $userData = ['foto' => $newFileName];
         $model->edit('user', $userData, $userId);
     }
 
+
     return redirect()->to('home/profile');
 }
-
-
 	public function guru()
 	{
 		$model = new M_office;

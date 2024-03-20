@@ -38,3 +38,15 @@
         </div>
     </div>
 </main>
+<script>
+        document.getElementById('foto').onchange = function() {
+    var fileName = this.value.split('\\').pop();
+    document.getElementById('file-name').innerText = 'File : ' + fileName;
+};
+
+document.getElementById("foto").addEventListener("change", function() {
+        var fileName = this.value.split('\\').pop();
+        document.getElementById('file-name').textContent = fileName;
+        document.getElementById('saveButton').style.display = 'inline-block';
+    });
+    </script>
