@@ -17,12 +17,12 @@
                       <form action="<?= base_url('home/aksi_e_guru')?>" method="POST">
                          <div class="card-body">
                         <div class="form-group">
-                          <label for="inputAddress">Nama Guru</label>
+                          <label for="inputAddress">Edit Nama Guru</label>
                           <input type="text" class="form-control" id="inputAddress5" name="namaguru" value="<?= $satu->nama_guru ?>">
 
                         </div>
                         <div class="form-group">
-                          <label for="inputAddress">NIS</label>
+                          <label for="inputAddress">Edit Mata Pelajaran</label>
                           <input type="text" class="form-control" id="inputAddress5" name="mapel" value ="<?= $satu->nama_mapel ?>">
                         </div>
                         
