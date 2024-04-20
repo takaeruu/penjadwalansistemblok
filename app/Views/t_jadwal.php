@@ -37,6 +37,17 @@
                 </select>
                         </div>
                         <div class="form-group">
+                          <label for="inputMapel">Bulan</label>
+                          <select class="form-control" name="bulan">
+                            <option value="">Pilih</option>
+                            <?php foreach ($yogas as $key): ?>
+    
+                        <option value="<?= $key->id_bulan ?>"><?= $key->nama_bulan?></option>
+                        <?php endforeach ; ?>
+                </select>
+                        </div>
+                        
+                        <div class="form-group">
                           <label for="inputAddress">Sesi</label>
                             <select class="form-control" name="sesi" required>
                           <option value="">Pilih</option>

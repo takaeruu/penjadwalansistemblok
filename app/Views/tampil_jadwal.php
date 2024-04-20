@@ -8,6 +8,7 @@
                 <div class="card-header">
                     <strong class="card-title">Tampil Jadwal</strong>
                 </div>
+          <form action="<?= base_url('home/exel') ?>" method="post" enctype="multipart/form-data">
 
                 <div class="card-body">
                     <div class="form-group">
@@ -28,7 +29,23 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="bulan">Bulan</label>
+                        <select class="form-control" name="bulan" id="bulan">
+                            <option value="">Pilih</option>
+                            <?php foreach ($epan as $key): ?>
+                                <option value="<?= $key->id_bulan ?>"><?= $key->nama_bulan ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="submit" style="background-color: green; color: white;">Exel</button>
+
+                    <button type="submit" formaction="<?= base_url('home/printpdf') ?>" style="background-color: red; color: white;">Pdf</button>
+
+                    <button type="submit" formaction="<?= base_url('home/wprint') ?>">window print</button>
+
                 </div>
+                </form>
             </div>
         </div>
     </div>
@@ -68,15 +85,16 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function(){
-    $('#kelas, #blok').change(function(){
+    $('#kelas, #blok, #bulan').change(function(){
         var id_kelas = $('#kelas').val();
         var id_blok = $('#blok').val();
+        var id_bulan = $('#bulan').val();
         
-        if(id_kelas != '' && id_blok != '') {
+        if(id_kelas != '' && id_blok != '' && id_bulan != '') {
             $.ajax({
                 url: '<?=base_url('home/getData')?>',
                 type: 'POST',
-                data: {id_kelas: id_kelas, id_blok: id_blok},
+                data: {id_kelas: id_kelas, id_blok: id_blok, id_bulan: id_bulan},
                 dataType: 'json',
                 success: function(response){
                     // Bersihkan tabel sebelum menambahkan data baru
@@ -92,7 +110,7 @@
     });
 
     // Memanggil perubahan secara otomatis saat halaman dimuat untuk pertama kali
-    $('#kelas, #blok').trigger('change');
+    $('#kelas, #blok, #bulan').trigger('change');
 });
 
 </script>
