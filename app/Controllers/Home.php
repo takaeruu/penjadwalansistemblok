@@ -4,6 +4,9 @@ namespace App\Controllers;
 
 use CodeIgniter\Controller;
 use App\Models\M_office;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use TCPDF;
 
 class Home extends BaseController
 {
@@ -203,6 +206,7 @@ class Home extends BaseController
 		$data['yoga1'] = $model->tampil('kelas');
 		$data['yoga2'] = $model->tampil('blok');
 		$data['yoga4'] = $model->tampil('guru');
+        $data['yogas'] = $model->tampil('bulan');
         
 
 		echo view ('header');
@@ -219,6 +223,7 @@ class Home extends BaseController
     if (session()->get('id') > 0) {
         $kelasId = $this->request->getPost('kelas');
         $blokId = $this->request->getPost('blok');
+        $bulanId = $this->request->getPost('bulan');
         $sesi = $this->request->getPost('sesi');
         $guruId = $this->request->getPost('guru');
         $jamMulai = $this->request->getPost('jammulai');
@@ -240,6 +245,7 @@ class Home extends BaseController
         $data = [
             'id_kelas' => $kelasId,
             'id_blok' => $blokId,
+            'id_bulan' => $bulanId,
             'sesi' => $sesi,
             'id_guru' => $guruId,
             'jam_mulai' => $jamMulai,
@@ -257,7 +263,8 @@ class Home extends BaseController
     $model = new M_office(); 
     $where = array('id_user' => session()->get('id'));
   $data['yoga'] = $model->tampil('kelas');
-$data['darren'] = $model->tampil('blok');
+  $data['darren'] = $model->tampil('blok');
+  $data['epan'] = $model->tampil('bulan');
 
 
     echo view('header');
@@ -271,11 +278,11 @@ public function getData()
         // Mendapatkan data yang dikirimkan melalui permintaan POST
         $id_kelas = $this->request->getPost('id_kelas');
         $id_blok = $this->request->getPost('id_blok');
-
+		$id_bulan = $this->request->getPost('id_bulan');
         // Memanggil model untuk mendapatkan data jadwal
         $model = new M_office();
 	
-        $data = $model->getJadwal($id_kelas, $id_blok);
+        $data = $model->getJadwal($id_kelas, $id_blok, $id_bulan);
 
 		
 
@@ -291,16 +298,26 @@ public function getData()
         // Load view dan kirimkan data
         $this->load->view('tampil_kelas', $data);
     }
+
+	public function tampil_bulan($id) {
+        $this->load->model('M_office');
+        $data['bulan'] = $this->M_office->getKelasById($id);
+
+        // Load view dan kirimkan data
+        $this->load->view('tampil_kelas', $data);
+    }
 	
 
     public function index() {
         // Tambahkan logika algoritma genetika di sini
         $kelasId = $this->input->post('kelas_id');
         $blokId = $this->input->post('blok_id');
+		$bulanId = $this->input->post('bulan_id');
 
         // Panggil model untuk mendapatkan jadwal
         $this->load->model('M_office');
-        $jadwal = $this->M_office->getJadwalByKelasBlok($kelasId, $blokId);
+        $jadwal = $this->M_office->getJadwalByKelasBlok($kelasId, $blokId, $bulanId);
+		 $data = $this->M_office->getSomeData();
 
         // Kirim data jadwal ke view
         $data['jadwal'] = $jadwal;
@@ -329,6 +346,150 @@ public function getData()
     // Optional: return redirect()->to('home/tampil_jadwal');
 }
 
-	
-	}
+public function exel(){
+    $model = new M_office();
+
+    // Tangkap tanggal mulai dan tanggal selesai dari form
+    $kelas = $this->request->getPost('kelas');
+    $blok = $this->request->getPost('blok');
+    $bulan = $this->request->getPost('bulan');
+
+    // Memanggil model untuk mendapatkan data sesuulani dengan ID pengguna
+    $data = $model->cari($kelas, $blok, $bulan);
+
+    // Membuat objek Spreadsheet
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // Judul laporan
+    $sheet->setCellValue('A1', 'Jadwal Mata Pelajaran');
+
+    // Merge cell untuk judul laporan
+    $sheet->mergeCells('A1:E1');
+
+    // Set style untuk judul laporan
+    $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+
+    // Set style untuk cell judul laporan
+    $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    
+    // Set header untuk kolom
+    $sheet->setCellValue('A2', 'SESI');
+    $sheet->setCellValue('B2', 'NAMA GURU');
+    $sheet->setCellValue('C2', 'MATA PELAJARAN');
+    $sheet->setCellValue('D2', 'JAM MULAI PELAJARAN');
+    $sheet->setCellValue('E2', 'JAM SELESAI PELAJARAN');
+   
+    // Mengatur lebar kolom
+    $sheet->getColumnDimension('A')->setWidth(10);
+    $sheet->getStyle('A')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+    $sheet->getColumnDimension('B')->setWidth(20);
+    $sheet->getColumnDimension('C')->setWidth(25);
+    $sheet->getColumnDimension('D')->setWidth(25);
+    $sheet->getColumnDimension('E')->setWidth(25);
+  
+
+    // Membuat judul tebal
+    $sheet->getStyle('A2:E2')->getFont()->setBold(true);
+
+    // Mengisi data ke dalam sheet
+    $rowIndex = 3; // Mulai dari baris 3 setelah judul dan header
+    foreach ($data as $row) {
+        $sheet->setCellValue('A' . $rowIndex, $row->sesi);
+        $sheet->setCellValue('B' . $rowIndex, $row->nama_guru);
+        $sheet->setCellValue('C' . $rowIndex, $row->nama_mapel);
+        $sheet->setCellValue('D' . $rowIndex, $row->jam_mulai);
+        $sheet->setCellValue('E' . $rowIndex, $row->jam_selesai);
+        $rowIndex++;
+    }
+
+    // Menambahkan border
+    $lastColumn = $sheet->getHighestColumn();
+    $lastRow = $sheet->getHighestRow();
+    $styleArray = [
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+            ],
+        ],
+    ];
+    $sheet->getStyle('A2:' . $lastColumn . $lastRow)->applyFromArray($styleArray);
+
+    // Setelah mengisi data, simpan spreadsheet ke dalam file atau kirim ke browser
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    $filename = 'jadwal.xlsx';
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="' . $filename . '"');
+    header('Cache-Control: max-age=0');
+    $writer->save('php://output');
+}
+public function printpdf()
+{
+    $model = new M_office();
+// Menggunakan instance $model yang sudah dibuat sebelumnya
+$kelas = $this->request->getPost('kelas');
+$blok = $this->request->getPost('blok');
+$bulan = $this->request->getPost('bulan');
+
+// Memanggil metode cari() menggunakan instance $model
+$data['yoga'] = $model->cari($kelas, $blok, $bulan);
+
+// Inisialisasi TCPDF
+$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+// Set judul dokumen
+$pdf->SetTitle('Jadwal Pelajaran');
+
+// Tambahkan halaman
+$pdf->AddPage();
+
+// Set font
+$pdf->SetFont('helvetica', '', 10); // Ukuran font diatur menjadi 10
+
+// Header tabel
+$html = '<table border="1">
+            <tr>
+                <th>SESI</th>
+                <th>NAMA GURU</th>
+                <th>MATA PELAJARAN</th>
+                <th>JAM MULAI PELAJARAN</th>
+                <th>JAM SELESAI PELAJARAN</th>
+            </tr>';
+
+// Isi data dari database ke dalam tabel PDF
+foreach ($data['yoga'] as $key) {
+    $html .= '<tr>
+                <td style="text-align: center;">' . $key->sesi . '</td> <!-- Konten pada kolom sesi menjadi tengah -->
+                <td>' . $key->nama_guru . '</td>
+                <td>' . $key->nama_mapel . '</td>
+                <td>' . $key->jam_mulai . '</td>
+                <td>' . $key->jam_selesai . '</td>
+              </tr>';
+}
+
+$html .= '</table>';
+
+// Tambahkan konten tabel ke PDF
+$pdf->writeHTML($html, true, false, true, false, '');
+
+// Output file PDF ke browser
+$pdf->Output('Jadwal_Pelajaran.pdf', 'I');
+exit();
+
+}
+public function wprint (){
+    $model = new M_office();
+
+    // Tangkap tanggal mulai dan tanggal selesai dari form
+    $kelas = $this->request->getPost('kelas');
+    $blok = $this->request->getPost('blok');
+    $bulan = $this->request->getPost('bulan');
+
+    // Memanggil model untuk mendapatkan data sesuulani dengan ID pengguna
+    $data['yoga'] = $model->cari($kelas, $blok, $bulan);
+    echo view("windowsprint", $data);
+}
+
+}
 

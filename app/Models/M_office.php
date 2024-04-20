@@ -99,27 +99,41 @@ class M_office extends Model
 }
  
 
-   public function tampiljadwal($kelasId, $blokId)
+   public function tampiljadwal($kelasId, $blokId, $bulanId)
 {
     return $this->db->table('jadwal')
         ->where('id_kelas', $kelasId)
         ->where('id_blok', $blokId)
+        ->where('id_bulan', $bulanId)
         ->get()
         ->getResult();
 }
 
  protected $table = 'jadwal';
 
-   public function getJadwal($id_kelas, $id_blok) 
+   public function getJadwal($id_kelas, $id_blok, $id_bulan) 
 {
     return $this->db->table('jadwal')
         ->select('jadwal.sesi, COALESCE(guru.nama_mapel, "Istirahat") as nama_mapel, jadwal.jam_mulai, jadwal.jam_selesai, COALESCE(guru.nama_guru, "-") as nama_guru')
         ->join('guru', 'guru.id_guru = jadwal.id_Guru', 'left')
         ->where('jadwal.id_kelas', $id_kelas)
         ->where('jadwal.id_blok', $id_blok)
+        ->where('jadwal.id_bulan', $id_bulan)
         ->get()
         ->getResult();
 }
+public function getJadwalByKelasBlok($kelasId, $blokId, $bulanId) 
+{
+    return $this->db->table->select('jadwal.sesi, COALESCE(guru.nama_mapel, "Istirahat") as nama_mapel, jadwal.jam_mulai, jadwal.jam_selesai, COALESCE(guru.nama_guru, "-") as nama_guru')
+        ->from('jadwal')
+        ->join('guru', 'guru.id_guru = jadwal.id_guru', 'left')
+        ->where('jadwal.id_kelas', $kelasId)
+        ->where('jadwal.id_blok', $blokId)
+        ->where('jadwal.id_bulan', $bulanId)
+        ->get()
+        ->result();
+}
+
 
     
   public function hapus_jadwal($id_kelas, $id_blok)
@@ -152,5 +166,20 @@ public function isScheduleConflict($guruId, $sesi, $kelasId, $jamMulai, $jamSele
 
     return $query > 0;
 }
+public function cari($kelas, $blok, $bulan)
+{
+    $query = "SELECT jadwal.sesi, COALESCE(guru.nama_mapel, 'Istirahat') as nama_mapel, jadwal.jam_mulai, jadwal.jam_selesai, COALESCE(guru.nama_guru, '-') as nama_guru 
+              FROM jadwal 
+              JOIN guru ON jadwal.id_guru = guru.id_guru 
+              JOIN kelas ON jadwal.id_kelas = kelas.id_kelas 
+              JOIN blok ON jadwal.id_blok = blok.id_blok 
+              JOIN bulan ON jadwal.id_bulan = bulan.id_bulan 
+              WHERE jadwal.id_kelas = ?
+                AND jadwal.id_blok = ? 
+                AND jadwal.id_bulan = ?";
 
+    return $this->db->query($query, [$kelas, $blok, $bulan])->getResult();
+   
+    
+}
 }
